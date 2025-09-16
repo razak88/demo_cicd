@@ -14,4 +14,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Print Hello Cloud
-        run: echo "Hello Cloud"
+        run: echo "Hello this git in the cloud"
