@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Simple Deploy
 
 on:
   push:
@@ -7,42 +7,16 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js (if needed)
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install dependencies and build
-        run: |
-          npm install
-          npm run build  # This should create your index.html
-
-      - name: Setup SSH key
+      - uses: actions/checkout@v4
+      
+      - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_KEY }}" > ~/.ssh/ec2-key.pem
           chmod 600 ~/.ssh/ec2-key.pem
-
-      - name: Verify build files
+          
+      - name: Deploy
         run: |
-          ls -la dist/  # or wherever your build outputs
-          if [ ! -f "dist/index.html" ]; then
-            echo "❌ Built files not found"
-            exit 1
-          fi
-
-      - name: Deploy to EC2
-        run: |
-          scp -r -o StrictHostKeyChecking=no -i ~/.ssh/ec2-key.pem \
-            dist/* ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/var/www/html/
-
-      - name: Restart web server (optional)
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/ec2-key.pem \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-            "sudo systemctl restart apache2"  # or nginx
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/ec2-key.pem \
+            index.html ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/var/www/html/
